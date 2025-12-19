@@ -33,6 +33,23 @@ project(day1 C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+# FetchContent
+include(FetchContent)
+
+FetchContent_Declare(
+    etl
+    GIT_REPOSITORY https://github.com/ETLCPP/etl
+    GIT_TAG 20.44.2
+)
+
+FetchContent_MakeAvailable(etl)
+add_library(etl_profile INTERFACE)
+target_sources(
+    etl_profile
+    PUBLIC FILE_SET HEADERS BASE_DIRS ../include FILES ../include/etl_profile.h
+)
+target_link_libraries(etl INTERFACE etl_profile)
+
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(day1 day1.cpp )
@@ -46,7 +63,9 @@ pico_enable_stdio_usb(day1 1)
 
 # Add the standard library to the build
 target_link_libraries(day1
-        pico_stdlib)
+        pico_stdlib
+        etl::etl
+)
 
 # Add the standard include files to the build
 target_include_directories(day1 PRIVATE

@@ -1,7 +1,7 @@
 
 #include "advent_pico.h"
-#include <algorithm>
 #include <stdio.h>
+#include "etl/algorithm.h"
 
 struct safe_part1 {
     int current_position{ 0 };
@@ -28,7 +28,7 @@ struct safe_part2_2 {
     {
         const int goto_position = current_position + rotation;
         const int direction = rotation > 0 ? 100 : -100;
-        const auto limits = std::minmax(current_position, goto_position);
+        const auto limits = etl::minmax(current_position, goto_position);
         int check = rotation > 0 ? 100 : 0;
         if (current_position == 0 && direction == -100)
             check += direction;
