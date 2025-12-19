@@ -26,13 +26,12 @@ struct safe_part2_2 {
     void turn(int rotation)
     {
         const int goto_position = current_position + rotation;
+        const int direction = rotation > 0 ? 100 : -100;
+        const auto limits = std::minmax(current_position, goto_position);
         int check = rotation > 0 ? 100 : 0;
-        int direction = rotation > 0 ? 100 : -100;
-        int lower = std::min(current_position, goto_position);
-        int higher = std::max(current_position, goto_position);
         if (current_position == 0 && direction == -100)
             check += direction;
-        while (lower < check && check < higher) {
+        while (limits.first < check && check < limits.second) {
             check += direction;
             count_zero++;
         }
@@ -57,7 +56,7 @@ int main()
     safe_part1 safe{ .current_position = 50 };
     safe_part2_2 safe2{ .current_position = 50 };
 
-    while (int ret = scanf(" %c%d", &dir, &rotation) == 2) {
+    while (const int ret = scanf(" %c%d", &dir, &rotation) == 2) {
         count++;
         //printf("%c %d %d %d\n", dir, rotation, count, ret);
 
