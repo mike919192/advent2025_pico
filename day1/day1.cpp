@@ -62,8 +62,8 @@ int main()
         int rotation{ 0 };
 
         while (ret = scanf(" %c%d", &dir, &rotation), ret == 2) {
-            count++;
             printf("%c %d %d %d\n", dir, rotation, count, ret);
+            count++;
 
             if (dir == 'L')
                 rotation *= -1;

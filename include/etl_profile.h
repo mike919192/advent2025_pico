@@ -1,6 +1,9 @@
 #ifndef ETL_PROFILE_H
 #define ETL_PROFILE_H
 
-#define ETL_NO_CHECKS
+#define ETL_USE_ASSERT_FUNCTION
 #define ETL_USING_STL 0
+#define ETL_CHECK_PUSH_POP
+#define ETL_CHECK_INDEX_OPERATOR
+#define ETL_CHECK_EXTRA
 #endif

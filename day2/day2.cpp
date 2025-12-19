@@ -44,9 +44,12 @@ int main()
 {
     pico_advent_init();
     int64_t part1_result{ 0 };
+    int count{ 0 };
 
     while (true) {
         const auto [num1, num2, eol] = read_numbers();
+        printf("%lld %lld %d\n", num1, num2, count);
+        count++;
 
         for (int64_t i = num1; i <= num2; ++i) {
             auto valid = part1_eval_id(i);
