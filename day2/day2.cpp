@@ -40,10 +40,34 @@ bool part1_eval_id(int64_t id)
     return view1 == view2;
 }
 
+bool part2_eval_id(int64_t id)
+{
+    id_string_t id_str;
+    snprintf(id_str.data(), max_str_len, "%lld", id);
+    id_str.trim_to_terminator();
+    size_t str_len = id_str.length();
+    for (int i = 2; i <= str_len; ++i) {
+        if (str_len % i != 0)
+            continue;
+        etl::string_view view1 = etl::string_view(id_str).substr(0, str_len / i);
+        for (int j = str_len / i; j < str_len; j += str_len / i) {
+            etl::string_view view2 = etl::string_view(id_str).substr(j, str_len / i);
+            if (view1 != view2)
+                goto not_valid;
+        }
+        return true;
+not_valid:
+        continue;
+    }
+
+    return false;
+}
+
 int main()
 {
     pico_advent_init();
     int64_t part1_result{ 0 };
+    int64_t part2_result{ 0 };
     int count{ 0 };
 
     while (true) {
@@ -52,9 +76,10 @@ int main()
         count++;
 
         for (int64_t i = num1; i <= num2; ++i) {
-            auto valid = part1_eval_id(i);
-            if (valid)
+            if (part1_eval_id(i))
                 part1_result += i;
+            if (part2_eval_id(i))
+                part2_result += i;
         }
 
         if (eol)
@@ -62,6 +87,7 @@ int main()
     }
 
     printf("%lld\n", part1_result);
+    printf("%lld\n", part2_result);
 
     pico_advent_finish();
 }
