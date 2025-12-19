@@ -12,12 +12,12 @@ etl::tuple<int64_t, int64_t, bool> read_numbers()
 {
     id_string_t num1_str;
     id_string_t num2_str;
-    char read_char{ 0 };
-    while (read_char = getchar(), read_char != '-') {
-        num1_str.append(1, read_char);
+    int read_char{ 0 };
+    while (read_char = getchar(), read_char != EOF && read_char != '-') {
+        num1_str.append(1, static_cast<char>(read_char));
     }
-    while (read_char = getchar(), read_char != ',' && read_char != '\n') {
-        num2_str.append(1, read_char);
+    while (read_char = getchar(), read_char != EOF && read_char != ',' && read_char != '\n') {
+        num2_str.append(1, static_cast<char>(read_char));
     }
     int64_t num1{ 0 };
     int64_t num2{ 0 };
@@ -46,11 +46,11 @@ bool part2_eval_id(int64_t id)
     snprintf(id_str.data(), max_str_len, "%lld", id);
     id_str.trim_to_terminator();
     size_t str_len = id_str.length();
-    for (int i = 2; i <= str_len; ++i) {
+    for (size_t i = 2; i <= str_len; ++i) {
         if (str_len % i != 0)
             continue;
         etl::string_view view1 = etl::string_view(id_str).substr(0, str_len / i);
-        for (int j = str_len / i; j < str_len; j += str_len / i) {
+        for (size_t j = str_len / i; j < str_len; j += str_len / i) {
             etl::string_view view2 = etl::string_view(id_str).substr(j, str_len / i);
             if (view1 != view2)
                 goto not_invalid;

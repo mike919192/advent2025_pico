@@ -33,6 +33,9 @@ project(day2 C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+# turn on warnings
+add_compile_options(-Wall -Wextra -Wpedantic -Wconversion)
+
 # FetchContent
 include(FetchContent)
 
