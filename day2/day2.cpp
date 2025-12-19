@@ -53,10 +53,10 @@ bool part2_eval_id(int64_t id)
         for (int j = str_len / i; j < str_len; j += str_len / i) {
             etl::string_view view2 = etl::string_view(id_str).substr(j, str_len / i);
             if (view1 != view2)
-                goto not_valid;
+                goto not_invalid;
         }
         return true;
-not_valid:
+not_invalid:
         continue;
     }
 
