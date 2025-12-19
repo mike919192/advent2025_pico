@@ -1,6 +1,7 @@
+
+#include "advent_pico.h"
 #include <algorithm>
 #include <stdio.h>
-#include "pico/stdlib.h"
 
 struct safe_part1 {
     int current_position{ 0 };
@@ -49,26 +50,30 @@ struct safe_part2_2 {
 
 int main()
 {
-    stdio_init_all();
-    int count{ 0 };
-    char dir{ 0 };
-    int rotation{ 0 };
+    pico_advent_init();
+
     safe_part1 safe{ .current_position = 50 };
     safe_part2_2 safe2{ .current_position = 50 };
 
-    while (const int ret = scanf(" %c%d", &dir, &rotation) == 2) {
-        count++;
-        //printf("%c %d %d %d\n", dir, rotation, count, ret);
+    {
+        int ret{ 0 };
+        int count{ 0 };
+        char dir{ 0 };
+        int rotation{ 0 };
 
-        if (dir == 'L')
-            rotation *= -1;
+        while (ret = scanf(" %c%d", &dir, &rotation), ret == 2) {
+            count++;
+            printf("%c %d %d %d\n", dir, rotation, count, ret);
 
-        safe.turn(rotation);
-        safe2.turn(rotation);
+            if (dir == 'L')
+                rotation *= -1;
+
+            safe.turn(rotation);
+            safe2.turn(rotation);
+        }
     }
     printf("%d\n", safe.count_zero);
     printf("%d\n", safe2.count_zero);
 
-    while (true) {
-    }
+    pico_advent_finish();
 }
