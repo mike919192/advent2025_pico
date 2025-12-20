@@ -1,29 +1,17 @@
 
+#include "advent.hpp"
 #include "advent_pico.h"
 #include "etl/string.h"
 #include "etl/string_stream.h"
 #include "etl/string_view.h"
+#include "etl/string_utilities.h"
 #include "etl/to_arithmetic.h"
-#include "etl/tuple.h"
+#include "etl/vector.h"
 #include <cstdint>
 #include <cstdio>
 
-static constexpr size_t max_str_len{ 16 };
-using id_string_t = etl::string<max_str_len - 1>;
-
-etl::tuple<int64_t, int64_t, bool> read_numbers()
-{
-    id_string_t num1_str;
-    id_string_t num2_str;
-    int read_char{ 0 };
-    while (read_char = getchar(), read_char != EOF && read_char != '-') {
-        num1_str.append(1, static_cast<char>(read_char));
-    }
-    while (read_char = getchar(), read_char != EOF && read_char != ',' && read_char != '\n') {
-        num2_str.append(1, static_cast<char>(read_char));
-    }
-    return { etl::to_arithmetic<int64_t>(num1_str), etl::to_arithmetic<int64_t>(num2_str), read_char == '\n' };
-}
+using id_string_t = etl::string<15>;
+using str_line_t = etl::string<31>;
 
 bool part1_eval_id(int64_t id)
 {
@@ -67,8 +55,12 @@ int main()
     int64_t part2_result{ 0 };
     int count{ 0 };
 
-    while (true) {
-        const auto [num1, num2, eol] = read_numbers();
+    for (str_line_t line; advt::getline(line, ',');) {
+        etl::vector<etl::string_view, 2> views;
+        etl::get_token_list(line, views, "-", true, 2);
+        int64_t num1 = etl::to_arithmetic<int64_t>(views[0]);
+        int64_t num2 = etl::to_arithmetic<int64_t>(views[1]);
+
         printf("%lld %lld %d\n", num1, num2, count);
         count++;
 
@@ -78,9 +70,6 @@ int main()
             if (part2_eval_id(i))
                 part2_result += i;
         }
-
-        if (eol)
-            break;
     }
 
     printf("%lld\n", part1_result);
