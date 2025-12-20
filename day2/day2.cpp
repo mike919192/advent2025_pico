@@ -1,9 +1,12 @@
 
 #include "advent_pico.h"
-#include <stdio.h>
 #include "etl/string.h"
+#include "etl/string_stream.h"
 #include "etl/string_view.h"
+#include "etl/to_arithmetic.h"
 #include "etl/tuple.h"
+#include <cstdint>
+#include <cstdio>
 
 static constexpr size_t max_str_len{ 16 };
 using id_string_t = etl::string<max_str_len - 1>;
@@ -19,18 +22,13 @@ etl::tuple<int64_t, int64_t, bool> read_numbers()
     while (read_char = getchar(), read_char != EOF && read_char != ',' && read_char != '\n') {
         num2_str.append(1, static_cast<char>(read_char));
     }
-    int64_t num1{ 0 };
-    int64_t num2{ 0 };
-    sscanf(num1_str.c_str(), "%lld", &num1);
-    sscanf(num2_str.c_str(), "%lld", &num2);
-    return { num1, num2, read_char == '\n' };
+    return { etl::to_arithmetic<int64_t>(num1_str), etl::to_arithmetic<int64_t>(num2_str), read_char == '\n' };
 }
 
 bool part1_eval_id(int64_t id)
 {
     id_string_t id_str;
-    snprintf(id_str.data(), max_str_len, "%lld", id);
-    id_str.trim_to_terminator();
+    etl::to_string(id, id_str);
     size_t str_len = id_str.length();
     if (str_len % 2 != 0)
         return false;
@@ -43,8 +41,7 @@ bool part1_eval_id(int64_t id)
 bool part2_eval_id(int64_t id)
 {
     id_string_t id_str;
-    snprintf(id_str.data(), max_str_len, "%lld", id);
-    id_str.trim_to_terminator();
+    etl::to_string(id, id_str);
     size_t str_len = id_str.length();
     for (size_t i = 2; i <= str_len; ++i) {
         if (str_len % i != 0)

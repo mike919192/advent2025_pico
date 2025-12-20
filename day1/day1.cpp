@@ -1,7 +1,7 @@
 
 #include "advent_pico.h"
-#include <stdio.h>
 #include "etl/algorithm.h"
+#include <cstdio>
 
 struct safe_part1 {
     int current_position{ 0 };
