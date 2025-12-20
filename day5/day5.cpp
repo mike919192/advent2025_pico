@@ -2,9 +2,12 @@
 #include "advent.hpp"
 #include "advent_pico.h"
 #include "etl/string.h"
+#include "etl/string_view.h"
 #include "etl/to_arithmetic.h"
 #include "etl/utility.h"
 #include "etl/vector.h"
+#include <cstdint>
+#include <cstdio>
 
 using str_line_t = etl::string<31>;
 using pair_t = etl::pair<int64_t, int64_t>;
