@@ -1,5 +1,6 @@
 
 #include "etl/string.h"
+#include <cassert>
 #include <cstdio>
 
 namespace advt
@@ -19,11 +20,12 @@ bool getline(etl::string<n> &line, char delim = 0)
     return true;
 }
 
-inline int char_to_int(char in)
+template<typename t_t = int>
+t_t char_to_int(char in)
 {
     assert(in >= '0' && in <= '9');
 
-    return in - '0';
+    return static_cast<t_t>(in - '0');
 }
 
 }

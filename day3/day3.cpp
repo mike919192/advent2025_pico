@@ -4,7 +4,10 @@
 #include "etl/span.h"
 #include "etl/string.h"
 #include "etl/vector.h"
+#include <cassert>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 
 using str_line_t = etl::string<127>;
 using battery_row_t = etl::vector<uint8_t, 128>;
@@ -28,7 +31,7 @@ int64_t find_max_joltage(const battery_row_t &row, int num_batts)
     }
 
     int64_t out_result{ 0 };
-    int64_t scale = static_cast<int64_t>(std::pow(10, results.size() - 1));
+    auto scale = static_cast<int64_t>(std::pow(10, results.size() - 1));
     for (auto num : results) {
         out_result += num * scale;
         scale /= 10;
@@ -48,7 +51,7 @@ int main()
         count++;
         battery_row_t row;
         for (auto num_char : line)
-            row.push_back(advt::char_to_int(num_char));
+            row.push_back(advt::char_to_int<uint8_t>(num_char));
 
         part1_result += find_max_joltage(row, 2);
         part2_result += find_max_joltage(row, 12);
