@@ -19,4 +19,11 @@ bool getline(etl::string<n> &line, char delim = 0)
     return true;
 }
 
+inline int char_to_int(char in)
+{
+    assert(in >= '0' && in <= '9');
+
+    return in - '0';
+}
+
 }
