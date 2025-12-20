@@ -20,6 +20,7 @@ int64_t find_max_joltage(const battery_row_t &row, int num_batts)
     for (int i = 0; i < num_batts; i++) {
         const size_t take = row.size() - (num_batts - (i + 1));
         const size_t drop = result_distance + 1;
+        //span is missing deduction guide from etl vector
         auto row_span = etl::span<const uint8_t>(row).subspan(drop, take - drop);
         //bug in etl max element??
         //if elements are equal it returns last
