@@ -11,7 +11,8 @@
 using str_line_t = etl::string<31>;
 using point_t = etl::array<int, 3>;
 using points_t = etl::vector<point_t, 32>;
-using points_groups_t = etl::vector<points_t, 16>;
+using points2_t = etl::vector<size_t, 32>;
+using points_groups_t = etl::vector<points2_t, 16>;
 
 void read_file(points_t &points)
 {
@@ -38,9 +39,7 @@ etl::tuple<etl::array<size_t, 2>, int64_t> part1_find_min_distances(const points
             int64_t x2 = (*j)[0];
             int64_t y2 = (*j)[1];
             int64_t z2 = (*j)[2];
-            int64_t distance = ((x1 - x2) * (x1 - x2)) +
-                               ((y1 - y2) * (y1 - y2)) +
-                               ((z1 - z2) * (z1 - z2));
+            int64_t distance = ((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2)) + ((z1 - z2) * (z1 - z2));
 
             //assert(distance != dist_threshold);
             if (distance > dist_threshold && distance < min_distance) {
@@ -54,9 +53,9 @@ etl::tuple<etl::array<size_t, 2>, int64_t> part1_find_min_distances(const points
     return { indexes, min_distance };
 }
 
-auto part1_find_point_in_group(points_groups_t &groups, const point_t &point)
+auto part1_find_point_in_group(points_groups_t &groups, size_t point_index)
 {
-    auto glambda = [&point](const auto &a) { return a == point; };
+    auto glambda = [&point_index](const auto &a) { return a == point_index; };
     auto glambda2 = [&glambda](const auto &a) { return etl::any_of(a.begin(), a.end(), glambda); };
     return etl::find_if(groups.begin(), groups.end(), glambda2);
 }
@@ -69,20 +68,20 @@ int64_t part1_find_groups(const points_t &points, points_groups_t &groups, int64
         //find distances in order
         etl::tie(indexes, dist_threshold) = part1_find_min_distances(points, dist_threshold);
         //check if either point is in a group
-        auto i1 = part1_find_point_in_group(groups, points.at(indexes.at(0)));
-        auto i2 = part1_find_point_in_group(groups, points.at(indexes.at(1)));
+        auto i1 = part1_find_point_in_group(groups, indexes.at(0));
+        auto i2 = part1_find_point_in_group(groups, indexes.at(1));
 
         //neither one is part of group
         if (i1 == groups.end() && i2 == groups.end()) {
             groups.emplace_back();
-            groups.back().emplace_back(points.at(indexes.at(0)));
-            groups.back().emplace_back(points.at(indexes.at(1)));
+            groups.back().emplace_back(indexes.at(0));
+            groups.back().emplace_back(indexes.at(1));
         } else if (i1 == i2) {
             //already in the same group nothing happens!
         } else if (i1 != groups.end() && i2 == groups.end()) {
-            (*i1).emplace_back(points.at(indexes.at(1)));
+            (*i1).emplace_back(indexes.at(1));
         } else if (i2 != groups.end() && i1 == groups.end()) {
-            (*i2).emplace_back(points.at(indexes.at(0)));
+            (*i2).emplace_back(indexes.at(0));
         } else {
             //merge
             (*i1).insert((*i1).end(), (*i2).begin(), (*i2).end());
