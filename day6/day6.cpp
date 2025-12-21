@@ -47,11 +47,13 @@ int64_t part1_parse(const lines_t &lines)
     }
     while (true) {
         lines_views_t views;
-        for (auto &line : lines_views) {
-            etl::get_token_list(line, views, " ", true, 1);
-            if (views.empty())
+        for (size_t i = 0; i < lines_views.size(); ++i) {
+            etl::get_token_list(lines_views[i], views, " ", true, 1);
+            if (views.size() != i + 1) {
+                views.clear();
                 break;
-            line = etl::string_view(views.back().end(), line.end());
+            }
+            lines_views[i] = etl::string_view(views.back().end(), lines_views[i].end());
         }
 
         if (views.empty())
@@ -67,6 +69,33 @@ int64_t part1_parse(const lines_t &lines)
     return result;
 }
 
+char part2_decode_operands(const lines_t &lines, size_t &position, operands_t &operands)
+{
+    char op{ 0 };
+    while (position > 0) {
+        long scale{ 1 };
+        long num{ 0 };
+        bool all_spaces{ true };
+        if (lines.back().at(position - 1) != ' ')
+            op = lines.back().at(position - 1);
+        for (auto i = lines.rbegin() + 1; i < lines.rend(); i++) {
+            const char num_char = (*i).at(position - 1);
+            if (num_char == ' ')
+                continue;
+            all_spaces = false;
+            num += advt::char_to_int(num_char) * scale;
+            scale *= 10;
+        }
+        position--;
+        if (!all_spaces)
+            operands.push_back(num);
+        else
+            break;
+    }
+
+    return op;
+}
+
 int main()
 {
     pico_advent_init();
@@ -77,7 +106,19 @@ int main()
 
     int64_t part1_result = part1_parse(lines);
 
-    printf("%lld", part1_result);
+    printf("%lld\n", part1_result);
+
+    size_t position{ lines.front().size() };
+    int64_t part2_result{ 0 };
+
+    while (position > 0) {
+        operands_t operands;
+        char op = part2_decode_operands(lines, position, operands);
+        part2_result += part1_do_op(op, operands);
+        op++;
+    }
+
+    printf("%lld\n", part2_result);
 
     pico_advent_finish();
 }
