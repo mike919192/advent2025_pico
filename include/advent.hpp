@@ -129,3 +129,15 @@ struct xy_map : public t_t {
 };
 
 }
+
+template <>
+struct etl::hash<advt::xy_pos> {
+    size_t operator()(const advt::xy_pos &k) const
+    {
+        // Compute individual hash values for fields
+        // and combine them using XOR
+        // and bit shifting:
+
+        return hash<int>{}(k.x) ^ (hash<int>{}(k.y) << 1U);
+    }
+};
