@@ -1,0 +1,121 @@
+#include "advent.hpp"
+#include "advent_pico.h"
+#include "etl/algorithm.h"
+#include "etl/array.h"
+#include "etl/map.h"
+#include "etl/string.h"
+#include "etl/string_view.h"
+#include "etl/to_arithmetic.h"
+#include "etl/vector.h"
+
+using str_line_t = etl::string<31>;
+using point_t = etl::array<int64_t, 3>;
+using points_t = etl::vector<point_t, 32>;
+using distances_map_t = etl::map<int64_t, etl::array<size_t, 2>, 256>;
+using points_groups_t = etl::vector<points_t, 32>;
+
+void read_file(points_t &points)
+{
+    for (str_line_t line; advt::getline(line);) {
+        etl::vector<etl::string_view, 3> views;
+        etl::get_token_list(line, views, ",", true, 3);
+        auto x = etl::to_arithmetic<int64_t>(views[0]);
+        auto y = etl::to_arithmetic<int64_t>(views[1]);
+        auto z = etl::to_arithmetic<int64_t>(views[2]);
+
+        points.push_back({ x, y, z });
+    }
+}
+
+void part1_find_distances(const points_t &points, distances_map_t &distances)
+{
+    for (auto i = points.begin(); i < points.end(); i++) {
+        for (auto j = i + 1; j < points.end(); j++) {
+            int64_t distance = (((*i)[0] - (*j)[0]) * ((*i)[0] - (*j)[0])) +
+                               (((*i)[1] - (*j)[1]) * ((*i)[1] - (*j)[1])) +
+                               (((*i)[2] - (*j)[2]) * ((*i)[2] - (*j)[2]));
+
+            etl::array<size_t, 2> test = { static_cast<size_t>(etl::distance(points.begin(), i)),
+                                           static_cast<size_t>(etl::distance(points.begin(), j)) };
+            distances.insert({ distance, test });
+        }
+    }
+}
+
+auto part1_find_point_in_group(points_groups_t &groups, const point_t &point)
+{
+    auto glambda = [&point](const auto &a) { return a == point; };
+    auto glambda2 = [&glambda](const auto &a) { return etl::any_of(a.begin(), a.end(), glambda); };
+    return etl::find_if(groups.begin(), groups.end(), glambda2);
+}
+
+int64_t part1_find_groups(const distances_map_t &distances, const points_t &points, points_groups_t &groups,
+                          int64_t loops)
+{
+    auto dis = distances.begin();
+    for (int64_t i = 0; i < loops; i++) {
+        //check if either point is in a group
+        auto i1 = part1_find_point_in_group(groups, points.at((*dis).second.at(0)));
+        auto i2 = part1_find_point_in_group(groups, points.at((*dis).second.at(1)));
+
+        //neither one is part of group
+        if (i1 == groups.end() && i2 == groups.end()) {
+            groups.emplace_back();
+            groups.back().emplace_back(points.at((*dis).second.at(0)));
+            groups.back().emplace_back(points.at((*dis).second.at(1)));
+        } else if (i1 == i2) {
+            //already in the same group nothing happens!
+        } else if (i1 != groups.end() && i2 == groups.end()) {
+            (*i1).emplace_back(points.at((*dis).second.at(1)));
+        } else if (i2 != groups.end() && i1 == groups.end()) {
+            (*i2).emplace_back(points.at((*dis).second.at(0)));
+        } else {
+            //merge
+            (*i1).insert((*i1).end(), (*i2).begin(), (*i2).end());
+            groups.erase(i2);
+        }
+
+        if (groups.size() == 1 && groups.at(0).size() == points.size()) {
+            int64_t x1 = points.at((*dis).second.at(0)).at(0);
+            int64_t x2 = points.at((*dis).second.at(1)).at(0);
+            int64_t mult_x = x1 * x2;
+            return mult_x;
+        }
+
+        ++dis;
+    }
+
+    return 0;
+}
+
+int main()
+{
+    pico_advent_init();
+
+    points_t points;
+    distances_map_t distances;
+
+    read_file(points);
+
+    part1_find_distances(points, distances);
+
+    {
+        points_groups_t groups;
+
+        part1_find_groups(distances, points, groups, 10);
+
+        etl::sort(groups.begin(), groups.end(), [](const auto &a, const auto &b) { return a.size() > b.size(); });
+
+        const int64_t part1_result = groups.at(0).size() * groups.at(1).size() * groups.at(2).size();
+
+        printf("%lld\n", part1_result);
+    }
+
+    points_groups_t groups;
+
+    const int64_t part2_result = part1_find_groups(distances, points, groups, etl::numeric_limits<int64_t>::max());
+
+    printf("%lld\n", part2_result);
+
+    pico_advent_finish();
+}
