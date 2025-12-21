@@ -2,6 +2,8 @@
 #include "advent_pico.h"
 #include "etl/map.h"
 #include "etl/string.h"
+#include <cstdint>
+#include <cstdio>
 
 using str_line_t = etl::string<255>;
 using splitter_map_t = etl::map<advt::xy_pos, int64_t, 2048>;
