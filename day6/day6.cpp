@@ -2,8 +2,13 @@
 #include "advent.hpp"
 #include "advent_pico.h"
 #include "etl/string.h"
+#include "etl/string_view.h"
 #include "etl/to_arithmetic.h"
 #include "etl/vector.h"
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
 
 using str_line_t = etl::string<4095>;
 using lines_t = etl::vector<str_line_t, 5>;
@@ -12,9 +17,8 @@ using operands_t = etl::vector<int64_t, 4>;
 
 void read_file(lines_t &lines)
 {
-    for (str_line_t line; advt::getline(line);) {
+    for (str_line_t line; advt::getline(line);)
         lines.emplace_back(line);
-    }
 }
 
 int64_t part1_do_op(char op, const operands_t &operands)
@@ -31,7 +35,7 @@ int64_t part1_do_op(char op, const operands_t &operands)
         break;
 
     default:
-        assert(true);
+        assert(false);
         break;
     }
 
@@ -42,18 +46,18 @@ int64_t part1_parse(const lines_t &lines)
 {
     int64_t result{ 0 };
     lines_views_t lines_views;
-    for (size_t i = 0; i < lines.size(); ++i) {
-        lines_views.emplace_back(lines[i]);
-    }
+    for (const auto &line : lines)
+        lines_views.emplace_back(line);
+
     while (true) {
         lines_views_t views;
         for (size_t i = 0; i < lines_views.size(); ++i) {
-            etl::get_token_list(lines_views[i], views, " ", true, 1);
+            etl::get_token_list(lines_views.at(i), views, " ", true, 1);
             if (views.size() != i + 1) {
                 views.clear();
                 break;
             }
-            lines_views[i] = etl::string_view(views.back().end(), lines_views[i].end());
+            lines_views.at(i) = etl::string_view(views.back().end(), lines_views.at(i).end());
         }
 
         if (views.empty())
@@ -73,8 +77,8 @@ char part2_decode_operands(const lines_t &lines, size_t &position, operands_t &o
 {
     char op{ 0 };
     while (position > 0) {
-        long scale{ 1 };
-        long num{ 0 };
+        int64_t scale{ 1 };
+        int64_t num{ 0 };
         bool all_spaces{ true };
         if (lines.back().at(position - 1) != ' ')
             op = lines.back().at(position - 1);
@@ -92,6 +96,8 @@ char part2_decode_operands(const lines_t &lines, size_t &position, operands_t &o
         else
             break;
     }
+
+    assert(op != 0);
 
     return op;
 }
