@@ -9,7 +9,7 @@
 #include "etl/vector.h"
 
 using str_line_t = etl::string<31>;
-using point_t = etl::array<int64_t, 3>;
+using point_t = etl::array<int, 3>;
 using points_t = etl::vector<point_t, 32>;
 using points_groups_t = etl::vector<points_t, 16>;
 
@@ -18,9 +18,9 @@ void read_file(points_t &points)
     for (str_line_t line; advt::getline(line);) {
         etl::vector<etl::string_view, 3> views;
         etl::get_token_list(line, views, ",", true, 3);
-        auto x = etl::to_arithmetic<int64_t>(views[0]);
-        auto y = etl::to_arithmetic<int64_t>(views[1]);
-        auto z = etl::to_arithmetic<int64_t>(views[2]);
+        auto x = etl::to_arithmetic<int>(views[0]);
+        auto y = etl::to_arithmetic<int>(views[1]);
+        auto z = etl::to_arithmetic<int>(views[2]);
 
         points.push_back({ x, y, z });
     }
@@ -32,9 +32,15 @@ etl::tuple<etl::array<size_t, 2>, int64_t> part1_find_min_distances(const points
     int64_t min_distance{ etl::numeric_limits<int64_t>::max() };
     for (auto i = points.begin(); i < points.end(); i++) {
         for (auto j = i + 1; j < points.end(); j++) {
-            int64_t distance = (((*i)[0] - (*j)[0]) * ((*i)[0] - (*j)[0])) +
-                               (((*i)[1] - (*j)[1]) * ((*i)[1] - (*j)[1])) +
-                               (((*i)[2] - (*j)[2]) * ((*i)[2] - (*j)[2]));
+            int64_t x1 = (*i)[0];
+            int64_t y1 = (*i)[1];
+            int64_t z1 = (*i)[2];
+            int64_t x2 = (*j)[0];
+            int64_t y2 = (*j)[1];
+            int64_t z2 = (*j)[2];
+            int64_t distance = ((x1 - x2) * (x1 - x2)) +
+                               ((y1 - y2) * (y1 - y2)) +
+                               ((z1 - z2) * (z1 - z2));
 
             //assert(distance != dist_threshold);
             if (distance > dist_threshold && distance < min_distance) {
