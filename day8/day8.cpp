@@ -1,5 +1,6 @@
 #include "advent.hpp"
 #include "advent_pico.h"
+#include "multi_vector.hpp"
 #include "etl/algorithm.h"
 #include "etl/array.h"
 #include "etl/map.h"
@@ -10,9 +11,10 @@
 
 using str_line_t = etl::string<31>;
 using point_t = etl::array<int, 3>;
-using points_t = etl::vector<point_t, 32>;
-using points2_t = etl::vector<size_t, 32>;
-using points_groups_t = etl::vector<points2_t, 16>;
+using points_t = etl::vector<point_t, 1024>;
+//using points2_t = etl::vector<size_t, 32>;
+using points_groups_t = advt::multi_vector<size_t, 2048, 1024>; // etl::vector<points2_t, 16>;
+using groups_sizes_t = etl::vector<size_t, 256>;
 
 void read_file(points_t &points)
 {
@@ -55,8 +57,8 @@ etl::tuple<etl::array<size_t, 2>, int64_t> part1_find_min_distances(const points
 
 auto part1_find_point_in_group(points_groups_t &groups, size_t point_index)
 {
-    auto glambda = [&point_index](const auto &a) { return a == point_index; };
-    auto glambda2 = [&glambda](const auto &a) { return etl::any_of(a.begin(), a.end(), glambda); };
+    auto glambda = [&point_index](auto a) { return a == point_index; };
+    auto glambda2 = [&glambda](auto a) { return etl::any_of(a.begin(), a.end(), glambda); };
     return etl::find_if(groups.begin(), groups.end(), glambda2);
 }
 
@@ -65,6 +67,7 @@ int64_t part1_find_groups(const points_t &points, points_groups_t &groups, int64
     etl::array<size_t, 2> indexes{};
     int64_t dist_threshold{ 0 };
     for (int64_t i = 0; i < loops; i++) {
+        printf("%lld\n", i);
         //find distances in order
         etl::tie(indexes, dist_threshold) = part1_find_min_distances(points, dist_threshold);
         //check if either point is in a group
@@ -74,19 +77,34 @@ int64_t part1_find_groups(const points_t &points, points_groups_t &groups, int64
         //neither one is part of group
         if (i1 == groups.end() && i2 == groups.end()) {
             groups.emplace_back();
-            groups.back().emplace_back(indexes.at(0));
-            groups.back().emplace_back(indexes.at(1));
+            groups.back().push_back(indexes.at(0));
+            groups.back().push_back(indexes.at(1));
         } else if (i1 == i2) {
             //already in the same group nothing happens!
         } else if (i1 != groups.end() && i2 == groups.end()) {
-            (*i1).emplace_back(indexes.at(1));
+            (*i1).push_back(indexes.at(1));
         } else if (i2 != groups.end() && i1 == groups.end()) {
-            (*i2).emplace_back(indexes.at(0));
+            (*i2).push_back(indexes.at(0));
         } else {
             //merge
-            (*i1).insert((*i1).end(), (*i2).begin(), (*i2).end());
+            //(*i1).insert((*i1).end(), (*i2).begin(), (*i2).end());
+            // for (auto a : (*i2))
+            //     (*i1).push_back(a);
+            for (size_t j = 0; j < (*i2).size(); ++j) {
+                auto test = (*i2).at(j);
+                //printf("%d\n", test);
+                (*i1).push_back(test);
+            }
             groups.erase(i2);
         }
+
+        // for (auto a : groups) {
+        //     printf("size %d els ", a.size());
+        //     for (auto b : a)
+        //         printf("%d ", b);
+        // }
+
+        // printf("\n");
 
         if (groups.size() == 1 && groups.at(0).size() == points.size()) {
             int64_t x1 = points.at(indexes.at(0)).at(0);
@@ -110,11 +128,15 @@ int main()
     {
         points_groups_t groups;
 
-        part1_find_groups(points, groups, 10);
+        part1_find_groups(points, groups, 1000);
 
-        etl::sort(groups.begin(), groups.end(), [](const auto &a, const auto &b) { return a.size() > b.size(); });
+        groups_sizes_t sizes;
+        for (auto group : groups)
+            sizes.push_back(group.size());
 
-        const int64_t part1_result = groups.at(0).size() * groups.at(1).size() * groups.at(2).size();
+        etl::sort(sizes.begin(), sizes.end(), [](auto a, auto b) { return a > b; });
+
+        const int64_t part1_result = sizes.at(0) * sizes.at(1) * sizes.at(2);
 
         printf("%lld\n", part1_result);
     }
