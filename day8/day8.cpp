@@ -12,8 +12,7 @@
 using str_line_t = etl::string<31>;
 using point_t = etl::array<int, 3>;
 using points_t = etl::vector<point_t, 1024>;
-//using points2_t = etl::vector<size_t, 32>;
-using points_groups_t = advt::multi_vector<size_t, 2048, 1024>; // etl::vector<points2_t, 16>;
+using points_groups_t = advt::multi_vector<size_t, 1024, 256>;
 using groups_sizes_t = etl::vector<size_t, 256>;
 
 void read_file(points_t &points)
@@ -88,10 +87,10 @@ int64_t part1_find_groups(const points_t &points, points_groups_t &groups, int64
         } else {
             //merge
             //(*i1).insert((*i1).end(), (*i2).begin(), (*i2).end());
-            // for (auto a : (*i2))
-            //     (*i1).push_back(a);
-            for (size_t j = 0; j < (*i2).size(); ++j) {
-                auto test = (*i2).at(j);
+            size_t i2_size = (*i2).size();
+            for (size_t j = 0; j < i2_size; ++j) {
+                auto test = (*i2).at(0);
+                (*i2).erase(0);
                 //printf("%d\n", test);
                 (*i1).push_back(test);
             }
