@@ -3,11 +3,15 @@
 #include "multi_vector.hpp"
 #include "etl/algorithm.h"
 #include "etl/array.h"
-#include "etl/map.h"
+#include "etl/limits.h"
 #include "etl/string.h"
 #include "etl/string_view.h"
 #include "etl/to_arithmetic.h"
+#include "etl/tuple.h"
 #include "etl/vector.h"
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
 
 using str_line_t = etl::string<31>;
 using point_t = etl::array<int, 3>;
@@ -42,7 +46,6 @@ etl::tuple<etl::array<size_t, 2>, int64_t> part1_find_min_distances(const points
             int64_t z2 = (*j)[2];
             int64_t distance = ((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2)) + ((z1 - z2) * (z1 - z2));
 
-            //assert(distance != dist_threshold);
             if (distance > dist_threshold && distance < min_distance) {
                 min_distance = distance;
                 indexes = { static_cast<size_t>(etl::distance(points.begin(), i)),
@@ -61,10 +64,10 @@ auto part1_find_point_in_group(points_groups_t &groups, size_t point_index)
     return etl::find_if(groups.begin(), groups.end(), glambda2);
 }
 
-int64_t part1_find_groups(const points_t &points, points_groups_t &groups, int64_t loops)
+etl::tuple<int64_t, int64_t> part1_find_groups(const points_t &points, points_groups_t &groups, int64_t loops,
+                                               int64_t dist_threshold)
 {
     etl::array<size_t, 2> indexes{};
-    int64_t dist_threshold{ 0 };
     for (int64_t i = 0; i < loops; i++) {
         printf("%lld\n", i);
         //find distances in order
@@ -86,34 +89,24 @@ int64_t part1_find_groups(const points_t &points, points_groups_t &groups, int64
             (*i2).push_back(indexes.at(0));
         } else {
             //merge
-            //(*i1).insert((*i1).end(), (*i2).begin(), (*i2).end());
             size_t i2_size = (*i2).size();
             for (size_t j = 0; j < i2_size; ++j) {
                 auto test = (*i2).at(0);
                 (*i2).erase(0);
-                //printf("%d\n", test);
                 (*i1).push_back(test);
             }
             groups.erase(i2);
         }
 
-        // for (auto a : groups) {
-        //     printf("size %d els ", a.size());
-        //     for (auto b : a)
-        //         printf("%d ", b);
-        // }
-
-        // printf("\n");
-
         if (groups.size() == 1 && groups.at(0).size() == points.size()) {
             int64_t x1 = points.at(indexes.at(0)).at(0);
             int64_t x2 = points.at(indexes.at(1)).at(0);
             int64_t mult_x = x1 * x2;
-            return mult_x;
+            return { mult_x, dist_threshold };
         }
     }
 
-    return 0;
+    return { 0, dist_threshold };
 }
 
 int main()
@@ -124,25 +117,22 @@ int main()
 
     read_file(points);
 
-    {
-        points_groups_t groups;
-
-        part1_find_groups(points, groups, 1000);
-
-        groups_sizes_t sizes;
-        for (auto group : groups)
-            sizes.push_back(group.size());
-
-        etl::sort(sizes.begin(), sizes.end(), [](auto a, auto b) { return a > b; });
-
-        const int64_t part1_result = sizes.at(0) * sizes.at(1) * sizes.at(2);
-
-        printf("%lld\n", part1_result);
-    }
-
     points_groups_t groups;
 
-    const int64_t part2_result = part1_find_groups(points, groups, etl::numeric_limits<int64_t>::max());
+    const auto [unused, dist_threshold] = part1_find_groups(points, groups, 1000, 0);
+
+    groups_sizes_t sizes;
+    for (auto group : groups)
+        sizes.push_back(group.size());
+
+    etl::sort(sizes.begin(), sizes.end(), [](auto a, auto b) { return a > b; });
+
+    const int64_t part1_result = sizes.at(0) * sizes.at(1) * sizes.at(2);
+
+    printf("%lld\n", part1_result);
+
+    const auto [part2_result, unused2] =
+        part1_find_groups(points, groups, etl::numeric_limits<int64_t>::max(), dist_threshold);
 
     printf("%lld\n", part2_result);
 
