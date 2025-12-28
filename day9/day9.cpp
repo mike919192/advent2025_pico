@@ -1,8 +1,12 @@
 #include "advent.hpp"
 #include "advent_pico.h"
+#include "etl/array.h"
 #include "etl/string.h"
+#include "etl/string_view.h"
 #include "etl/to_arithmetic.h"
 #include "etl/vector.h"
+#include <cassert>
+#include <cstdint>
 
 using str_line_t = etl::string<31>;
 using points_t = etl::vector<advt::xy_pos, 512>;
@@ -12,7 +16,7 @@ static constexpr advt::xy_pos xy_down{ 0, 1 };
 static constexpr advt::xy_pos xy_left{ -1, 0 };
 static constexpr advt::xy_pos xy_up{ 0, -1 };
 
-void read_file(points_t & points)
+void read_file(points_t &points)
 {
     for (str_line_t line; advt::getline(line);) {
         etl::vector<etl::string_view, 2> views;
@@ -20,7 +24,7 @@ void read_file(points_t & points)
         auto x = etl::to_arithmetic<int>(views[0]);
         auto y = etl::to_arithmetic<int>(views[1]);
 
-        points.push_back(advt::xy_pos{x, y});
+        points.push_back(advt::xy_pos{ x, y });
     }
 }
 
@@ -30,10 +34,10 @@ int64_t part1_find_areas(const points_t &points)
 
     for (auto i = points.begin(); i < points.end(); i++) {
         for (auto j = i + 1; j < points.end(); j++) {
-            const int64_t i_x = static_cast<int64_t>((*i).x);
-            const int64_t i_y = static_cast<int64_t>((*i).y);
-            const int64_t j_x = static_cast<int64_t>((*j).x);
-            const int64_t j_y = static_cast<int64_t>((*j).y);
+            const auto i_x = static_cast<int64_t>((*i).x);
+            const auto i_y = static_cast<int64_t>((*i).y);
+            const auto j_x = static_cast<int64_t>((*j).x);
+            const auto j_y = static_cast<int64_t>((*j).y);
             const int64_t area = (std::abs(i_x - j_x) + 1) * (std::abs(i_y - j_y) + 1);
 
             if (area > max_area)
@@ -65,59 +69,31 @@ int determine_turn(const advt::xy_pos &last_dir, const advt::xy_pos &dir)
     return 0;
 }
 
-points_t part2_gen_keepout(const points_t &points)
+void gen_keepout_point(const etl::array<advt::xy_pos, 3> &points, points_t &keepout)
 {
-    points_t keepout;
-
-    {
-        auto prev_dir = *(points.begin()) - *(points.end() - 1);
-        normalize_dir(prev_dir);
-        auto next_dir = *(points.begin() + 1) - *(points.begin());
-        normalize_dir(next_dir);
-        int turn = determine_turn(prev_dir, next_dir);
-        if (turn > 0) {
-            keepout.push_back(*points.begin() + prev_dir - next_dir);
-        } else if (turn < 0) {
-            keepout.push_back(*points.begin() - prev_dir + next_dir);
-        } else {
-            assert(false);
-        }
+    auto prev_dir = points[1] - points[0];
+    normalize_dir(prev_dir);
+    auto next_dir = points[2] - points[1];
+    normalize_dir(next_dir);
+    int turn = determine_turn(prev_dir, next_dir);
+    if (turn > 0) {
+        keepout.push_back(points[1] + prev_dir - next_dir);
+    } else if (turn < 0) {
+        keepout.push_back(points[1] - prev_dir + next_dir);
+    } else {
+        assert(false);
     }
+}
+
+void part2_gen_keepout(const points_t &points, points_t &keepout)
+{
+    gen_keepout_point({ *(points.end() - 1), *(points.begin()), *(points.begin() + 1) }, keepout);
 
     for (auto i = points.begin() + 1; i < points.end() - 1; ++i) {
-        //direction from prev to current
-        auto prev_dir = *i - *(i - 1);
-        normalize_dir(prev_dir);
-        //direction from current to next
-        auto next_dir = *(i + 1) - *i;
-        normalize_dir(next_dir);
-        int turn = determine_turn(prev_dir, next_dir);
-        //turn is in the same direction as clockwise
-        if (turn > 0) {
-            keepout.push_back(*i + prev_dir - next_dir);
-        } else if (turn < 0) {
-            keepout.push_back(*i - prev_dir + next_dir);
-        } else {
-            assert(false);
-        }
+        gen_keepout_point({ *(i - 1), *i, *(i + 1) }, keepout);
     }
 
-    {
-        auto prev_dir = *(points.end() - 1) - *(points.end() - 2);
-        normalize_dir(prev_dir);
-        auto next_dir = *(points.begin()) - *(points.end() - 1);
-        normalize_dir(next_dir);
-        int turn = determine_turn(prev_dir, next_dir);
-        if (turn > 0) {
-            keepout.push_back(*(points.end() - 1) + prev_dir - next_dir);
-        } else if (turn < 0) {
-            keepout.push_back(*(points.end() - 1) - prev_dir + next_dir);
-        } else {
-            assert(false);
-        }
-    }
-
-    return keepout;
+    gen_keepout_point({ *(points.end() - 2), *(points.end() - 1), *(points.begin()) }, keepout);
 }
 
 bool is_line_intersecting(const etl::array<advt::xy_pos, 2> &line, const etl::array<advt::xy_pos, 2> &line2)
@@ -134,7 +110,7 @@ bool is_line_intersecting(const etl::array<advt::xy_pos, 2> &line, const etl::ar
         }
         assert(false);
     }
-    
+
     advt::xy_pos dir2 = line2[1] - line2[0];
     normalize_dir(dir2);
 
@@ -160,9 +136,7 @@ bool is_line_intersecting_keepout(const points_t &keepout, const etl::array<advt
             return true;
     }
     auto keepout_line = etl::minmax(*(keepout.end() - 1), *keepout.begin());
-    if (is_line_intersecting({ keepout_line.first, keepout_line.second }, line))
-        return true;
-    return false;
+    return is_line_intersecting({ keepout_line.first, keepout_line.second }, line);
 }
 
 bool part2_check_rectangle(const etl::array<advt::xy_pos, 2> &rect, const points_t &keepout)
@@ -206,10 +180,11 @@ int main()
     //key is xy_point
     //value is unused
     //if any rectangles overlap the keepout then they are not valid
-    const auto keepout = part2_gen_keepout(points);
+    points_t keepout;
+    part2_gen_keepout(points, keepout);
 
     int64_t part2_result{ 0 };
-    int count{0};
+    //int count{ 0 };
 
     for (auto i = points.begin(); i < points.end(); i++) {
         for (auto j = i + 1; j < points.end(); j++) {
@@ -217,10 +192,10 @@ int main()
             //printf("%d\n", count++);
             //if (!part2_check_rectangle({ *i, *j }, keepout))
             //    continue;
-            const int64_t i_x = static_cast<int64_t>((*i).x);
-            const int64_t i_y = static_cast<int64_t>((*i).y);
-            const int64_t j_x = static_cast<int64_t>((*j).x);
-            const int64_t j_y = static_cast<int64_t>((*j).y);
+            const auto i_x = static_cast<int64_t>((*i).x);
+            const auto i_y = static_cast<int64_t>((*i).y);
+            const auto j_x = static_cast<int64_t>((*j).x);
+            const auto j_y = static_cast<int64_t>((*j).y);
             const int64_t area = (std::abs(i_x - j_x) + 1) * (std::abs(i_y - j_y) + 1);
 
             if (area > part2_result && part2_check_rectangle({ *i, *j }, keepout)) {
