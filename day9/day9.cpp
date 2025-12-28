@@ -141,21 +141,23 @@ bool is_line_intersecting_keepout(const points_t &keepout, const etl::array<advt
 
 bool part2_check_rectangle(const etl::array<advt::xy_pos, 2> &rect, const points_t &keepout)
 {
-    const int low_x = etl::min(rect[0].x, rect[1].x);
-    const int high_x = etl::max(rect[0].x, rect[1].x);
-    const int low_y = etl::min(rect[0].y, rect[1].y);
-    const int high_y = etl::max(rect[0].y, rect[1].y);
+    const auto minmax_x = etl::minmax(rect[0].x, rect[1].x);
+    const auto minmax_y = etl::minmax(rect[0].y, rect[1].y);
 
-    if (is_line_intersecting_keepout(keepout, { advt::xy_pos{ low_x, low_y }, advt::xy_pos{ high_x, low_y } }))
+    if (is_line_intersecting_keepout(keepout, { advt::xy_pos{ minmax_x.first, minmax_y.first },
+                                                advt::xy_pos{ minmax_x.second, minmax_y.first } }))
         return false;
 
-    if (is_line_intersecting_keepout(keepout, { advt::xy_pos{ low_x, low_y }, advt::xy_pos{ low_x, high_y } }))
+    if (is_line_intersecting_keepout(keepout, { advt::xy_pos{ minmax_x.first, minmax_y.first },
+                                                advt::xy_pos{ minmax_x.first, minmax_y.second } }))
         return false;
 
-    if (is_line_intersecting_keepout(keepout, { advt::xy_pos{ low_x, high_y }, advt::xy_pos{ high_x, high_y } }))
+    if (is_line_intersecting_keepout(keepout, { advt::xy_pos{ minmax_x.first, minmax_y.second },
+                                                advt::xy_pos{ minmax_x.second, minmax_y.second } }))
         return false;
 
-    if (is_line_intersecting_keepout(keepout, { advt::xy_pos{ high_x, low_y }, advt::xy_pos{ high_x, high_y } }))
+    if (is_line_intersecting_keepout(keepout, { advt::xy_pos{ minmax_x.second, minmax_y.first },
+                                                advt::xy_pos{ minmax_x.second, minmax_y.second } }))
         return false;
 
     return true;
