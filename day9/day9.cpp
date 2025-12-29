@@ -1,5 +1,6 @@
 #include "advent.hpp"
 #include "advent_pico.h"
+#include "etl/absolute.h"
 #include "etl/array.h"
 #include "etl/string.h"
 #include "etl/string_view.h"
@@ -38,7 +39,7 @@ int64_t part1_find_areas(const points_t &points)
             const auto i_y = static_cast<int64_t>((*i).y);
             const auto j_x = static_cast<int64_t>((*j).x);
             const auto j_y = static_cast<int64_t>((*j).y);
-            const int64_t area = (std::abs(i_x - j_x) + 1) * (std::abs(i_y - j_y) + 1);
+            const int64_t area = (etl::absolute(i_x - j_x) + 1) * (etl::absolute(i_y - j_y) + 1);
 
             if (area > max_area)
                 max_area = area;
@@ -50,7 +51,7 @@ int64_t part1_find_areas(const points_t &points)
 
 void normalize_dir(advt::xy_pos &dir)
 {
-    const int max = etl::max(std::abs(dir.x), std::abs(dir.y));
+    const int max = etl::max(etl::absolute(dir.x), etl::absolute(dir.y));
     assert(max != 0);
     dir.x /= max;
     dir.y /= max;
@@ -170,18 +171,12 @@ int main()
     points_t points;
     read_file(points);
 
-    //gets all possible areas
-    //creates a multimap
-    //key is area
-    //value is 2 points that made the rectangle
+    //get the max area of all combinations of points
     const auto part1_result = part1_find_areas(points);
 
     printf("%lld\n", part1_result);
 
-    //keepout is a unordered map of points outside the connected points
-    //key is xy_point
-    //value is unused
-    //if any rectangles overlap the keepout then they are not valid
+    //keepout is a vector of points outside the original shape
     points_t keepout;
     part2_gen_keepout(points, keepout);
 
@@ -190,20 +185,15 @@ int main()
 
     for (auto i = points.begin(); i < points.end(); i++) {
         for (auto j = i + 1; j < points.end(); j++) {
-            //std::cout << count++ << '\n';
             //printf("%d\n", count++);
-            //if (!part2_check_rectangle({ *i, *j }, keepout))
-            //    continue;
             const auto i_x = static_cast<int64_t>((*i).x);
             const auto i_y = static_cast<int64_t>((*i).y);
             const auto j_x = static_cast<int64_t>((*j).x);
             const auto j_y = static_cast<int64_t>((*j).y);
-            const int64_t area = (std::abs(i_x - j_x) + 1) * (std::abs(i_y - j_y) + 1);
+            const int64_t area = (etl::absolute(i_x - j_x) + 1) * (etl::absolute(i_y - j_y) + 1);
 
             if (area > part2_result && part2_check_rectangle({ *i, *j }, keepout)) {
                 part2_result = area;
-                //std::cout << (*i).x << " " << (*i).y << " " << (*j).x << " " << (*j).y << '\n';
-                //std::cout << area << '\n';
             }
         }
     }
