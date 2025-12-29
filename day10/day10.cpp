@@ -4,8 +4,15 @@
 #include "permutator.hpp"
 #include "etl/algorithm.h"
 #include "etl/bit.h"
+#include "etl/limits.h"
+#include "etl/string.h"
+#include "etl/string_view.h"
 #include "etl/to_arithmetic.h"
 #include "etl/vector.h"
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
 
 using wiring_t = etl::vector<int, 16>;
 using mat_row_t = etl::vector<advt::fraction, 16>;
@@ -102,7 +109,8 @@ uint32_t part1_try_permutations(const machine_bits &mach)
     const auto min = etl::min_element(results.begin(), results.end(),
                                       [](auto a, auto b) { return etl::popcount(a) < etl::popcount(b); });
 
-    return etl::popcount(*min);
+    assert(min != results.end());
+    return min != results.end() ? etl::popcount(*min) : 0;
 }
 
 void print_mat(const mat_t &mat)
