@@ -16,6 +16,9 @@ bool getline(etl::string<n> &line, char delim = 0)
         line.append(1, static_cast<char>(read_char));
     }
 
+    //trim \r if windows line endings are sent
+    etl::trim_from_right(line, "\r");
+
     if (read_char == EOF || read_char == '\x1A')
         return false;
     return true;
