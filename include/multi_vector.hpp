@@ -114,6 +114,7 @@ private:
     }
 
 public:
+    using subview = multi_vector_subview<t_t, n_t, m_t>;
     friend class multi_vector_iterator<t_t, n_t, m_t>;
 
     multi_vector_iterator<t_t, n_t, m_t> begin()

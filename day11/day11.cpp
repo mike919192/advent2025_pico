@@ -1,17 +1,23 @@
 #include "advent.hpp"
 #include "advent_pico.h"
 #include "multi_vector.hpp"
+#include "etl/array.h"
 #include "etl/string.h"
+#include "etl/string_utilities.h"
+#include "etl/string_view.h"
 #include "etl/unordered_map.h"
+#include "etl/vector.h"
+#include <cassert>
+#include <cstdint>
 
 using str_line_t = etl::string<127>;
 using device_label_t = etl::string<3>;
 using list_outputs_t = advt::multi_vector<device_label_t, 2048, 636>;
-using outputs_label_t = advt::multi_vector_subview<device_label_t, 2048, 636>;
+using outputs_label_t = list_outputs_t::subview;
 using list_devices_t = etl::unordered_map<device_label_t, outputs_label_t, 636>;
 using memo_map_t = etl::unordered_map<device_label_t, int64_t, 636>;
 
-void read_file(list_devices_t &devices, list_outputs_t & list_outputs)
+void read_file(list_devices_t &devices, list_outputs_t &list_outputs)
 {
     for (str_line_t line; advt::getline(line);) {
         etl::vector<etl::string_view, 24> views;
@@ -29,23 +35,19 @@ void read_file(list_devices_t &devices, list_outputs_t & list_outputs)
     }
 }
 
-int64_t part1_eval_device(list_devices_t &devices, const device_label_t &dev_name,
-                          const device_label_t &dest_name, memo_map_t &memo_map)
+int64_t part1_eval_device(list_devices_t &devices, const device_label_t &dev_name, const device_label_t &dest_name,
+                          memo_map_t &memo_map)
 {
     auto &outputs = devices.at(dev_name);
     int64_t ret_val{ 0 };
     for (auto &output : outputs) {
         //check if output is already in memo map
-        if (memo_map.contains(output)) {
-            //printf("Retrieved: %lld at %s\n", memo_map.at(output), output.c_str());
+        if (memo_map.contains(output))
             ret_val += memo_map.at(output);
-        } else if (output == dest_name) {
-            //printf("Got to dest: %s\n", dest_name.c_str());
+        else if (output == dest_name)
             ret_val++;
-        } else if (output != "out") {
-            //printf("Going into: %s\n", output.c_str());
+        else if (output != "out")
             ret_val += part1_eval_device(devices, output, dest_name, memo_map);
-        }
     }
     //add to memo map
     //printf("Add to memo: %s %lld\n", dev_name.c_str(), ret_val);
@@ -77,7 +79,7 @@ int main()
         for (auto i = path.rbegin(); i < path.rend() - 1; ++i) {
             path_result = part1_eval_device(devices, *(i + 1), *i, memo_map);
             memo_map = memo_map_t();
-            memo_map.insert({*(i + 1), path_result});
+            memo_map.insert({ *(i + 1), path_result });
         }
         part2_result += path_result;
     }
